@@ -1,0 +1,110 @@
+[
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-24T01:21:16.569Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-24T01:22:43.980Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-in",
+    "date": "2024-09-24T01:44:25.081Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-in",
+    "date": "2024-09-25T02:23:43.534Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T19:08:53.327Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-09-26T19:47:22.080Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T19:47:41.155Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-09-26T19:52:32.022Z"
+  },
+  {
+    "radioID": "6",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T19:52:34.198Z"
+  },
+  {
+    "radioID": "6",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-09-26T19:54:33.843Z"
+  },
+  {
+    "radioID": "5",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T19:58:53.361Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T20:29:20.850Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-26T20:29:49.507Z"
+  },
+  {
+    "radioID": "8",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T20:35:02.218Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-26T20:35:15.486Z"
+  },
+  {
+    "radioID": "12",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-26T20:53:20.395Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-26T21:08:37.243Z"
+  },
+  {
+    "radioID": "2",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-09-26T21:31:53.056Z"
+  }
+]
