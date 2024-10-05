@@ -5,12 +5,11 @@
 import React, { useEffect, useState } from 'react';
 import UserSelector from '@/components/user-selector';
 import UserRadioCheckoutDetails from '@/components/user-radio-checkout-details';
-import { User, Radio } from '@/types/types'; // Assuming we are importing User and Radio types
+import { User } from '@/types/types';
 
 const Page: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [radios, setRadios] = useState<Radio[]>([]); // Store all radios (checked out and available)
 
     // Fetch the real users from the API
     useEffect(() => {
@@ -23,34 +22,21 @@ const Page: React.FC = () => {
                 } else {
                     console.error('Users data is not an array:', data);
                     setUsers([]);
+                    setSelectedUser(null); // Reset the selected user on error
                 }
             } catch (error) {
                 console.error('Error fetching users:', error);
                 setUsers([]); // Fall back to an empty array on error
+                setSelectedUser(null); // Reset the selected user on error
             }
         };
 
         fetchUsers();
     }, []);
 
-    // Fetch the real radios from the API
-    useEffect(() => {
-        const fetchRadios = async () => {
-            try {
-                const response = await fetch('/api/admin/radios');
-                const data = await response.json();
-                setRadios(data); // Store all radios (available and checked out)
-            } catch (error) {
-                console.error('Error fetching radios:', error);
-            }
-        };
-
-        fetchRadios();
-    }, []);
-
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-6">Radio Checkout System</h1>
+            {/* <h1 className="text-2xl font-bold mb-6">Radio Checkout System</h1> */}
 
             <div className="flex space-x-8">
                 {/* User Selection */}
@@ -63,10 +49,7 @@ const Page: React.FC = () => {
 
                 {/* User Radio Checkout Details */}
                 <div>
-                    <UserRadioCheckoutDetails
-                        selectedUser={selectedUser}
-                        radios={radios}
-                    />
+                    <UserRadioCheckoutDetails selectedUser={selectedUser} />
                 </div>
             </div>
         </div>

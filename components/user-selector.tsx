@@ -1,19 +1,20 @@
+// components/user-selector.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { User } from '@/types/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Modal components
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import UsersGrid from '@/components/users-grid';
-import UserCard from '@/components/user-card'; // Assuming you already have this component for rendering a single user
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // ShadCN UI components
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; // ShadCN Avatar components
-import { CircleUserRound } from 'lucide-react'; // Lucide React icon for user fallback
+import UserCard from '@/components/user-card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { CircleUserRound } from 'lucide-react';
 
 interface UserSelectorProps {
     users: User[];
-    onSelect: (user: User) => void;
+    onSelect: (user: User | null) => void;
 }
 
 const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
@@ -21,6 +22,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [lastActivity, setLastActivity] = useState<number>(Date.now());
+
+    const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
     // Filter users as query updates
     useEffect(() => {
@@ -32,6 +36,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
         setSelectedUser(user);
         onSelect(user); // Raise the user selection event
         setIsModalOpen(false); // Close modal when a user is selected
+        resetActivity(); // Reset activity timeout when a user is selected
     };
 
     // Clear the search query
@@ -43,6 +48,45 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
     const openModalForUserSelection = () => {
         setQuery(''); // Clear the query to show all users
         setIsModalOpen(true); // Open the modal
+    };
+
+    // Activity handler to reset inactivity timeout
+    const resetActivity = () => {
+        setLastActivity(Date.now());
+    };
+
+    // Effect to track inactivity and clear the selected user
+    useEffect(() => {
+        // Set a timer to clear the user after inactivity
+        const timer = setInterval(() => {
+            if (Date.now() - lastActivity >= INACTIVITY_TIMEOUT && selectedUser) {
+                setSelectedUser(null); // Clear the selected user after inactivity
+                onSelect(null); // Notify parent component
+            }
+        }, 1000); // Check every second
+
+        // Clean up the interval on component unmount
+        return () => clearInterval(timer);
+    }, [lastActivity, selectedUser]);
+
+    // Add event listeners for user activity (mousemove, keydown, etc.)
+    useEffect(() => {
+        const handleUserActivity = () => resetActivity();
+
+        window.addEventListener('mousemove', handleUserActivity);
+        window.addEventListener('keydown', handleUserActivity);
+
+        // Clean up event listeners on unmount
+        return () => {
+            window.removeEventListener('mousemove', handleUserActivity);
+            window.removeEventListener('keydown', handleUserActivity);
+        };
+    }, []);
+
+    // Handle adding a new user (for now, just log a message)
+    const handleAddNewUser = () => {
+        console.log(`Adding new user with name "${query}"`); // Simple log for testing
+        alert(`Adding new user with name "${query}"`); // Display a simple message for testing
     };
 
     return (
@@ -80,14 +124,12 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
             <Dialog
                 open={isModalOpen}
                 onOpenChange={(open) => {
-                    // Close the modal without resetting the user if no new selection is made
                     if (!open) {
                         setIsModalOpen(false);
                     }
                 }}
             >
                 <DialogTrigger asChild>
-                    {/* Invisible trigger because we are manually handling the modal */}
                     <span />
                 </DialogTrigger>
                 <DialogContent className="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-[80%]">
@@ -103,6 +145,14 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
                             placeholder="Type your name..."
                             className="w-full"
                         />
+                        {filteredUsers.length === 0 && (
+                            <Button
+                                variant="outline"
+                                onClick={handleAddNewUser}
+                            >
+                                Add New User
+                            </Button>
+                        )}
                         <Button onClick={handleClearSearch}>Clear search</Button>
                     </div>
 

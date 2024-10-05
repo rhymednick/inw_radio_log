@@ -1,143 +1,108 @@
 // File: /components/user-radio-checkout-details.tsx
 
 import React, { useState, useEffect } from 'react';
-import { User, Radio } from '@/types/types'; // Assuming we are importing User and Radio types
+import { User, Radio, CheckoutLogEntry } from '@/types/types'; // Assuming we are importing User and Radio types
 import RadioList from '@/components/radio-list';
 import RadioCheckout from '@/components/radio-checkout';
 import CheckoutLog from '@/components/checkout-log';
+import { checkInRadio, checkOutRadio, getRadios, getLogEntries } from '@/lib/api';
 
 interface UserRadioCheckoutDetailsProps {
     selectedUser: User | null; // Nullable since no user might be selected
-    radios: Radio[]; // Full list of radios (both checked-out and available)
 }
 
-const UserRadioCheckoutDetails: React.FC<UserRadioCheckoutDetailsProps> = ({ selectedUser, radios }) => {
+const UserRadioCheckoutDetails: React.FC<UserRadioCheckoutDetailsProps> = ({ selectedUser }) => {
     const [radiosCheckedOut, setRadiosCheckedOut] = useState<Radio[]>([]);
-    const [availableRadios, setAvailableRadios] = useState<Radio[]>([]);
-    const [checkoutLog, setCheckoutLog] = useState<any[]>([]);
+    const [fetchedLogs, setFetchedLogs] = useState<CheckoutLogEntry[]>([]);
 
     useEffect(() => {
-        if (selectedUser) {
-            // Fetch radios checked out to the selected user
-            const userRadios = radios.filter((radio) => radio.checked_out_user === selectedUser.id);
-            setRadiosCheckedOut(userRadios);
+        const fetchRadios = async () => {
+            if (selectedUser) {
+                // Fetch radios checked out to the selected user
+                setRadiosCheckedOut((await getRadios({ userID: selectedUser.id })) as Radio[]);
+                setFetchedLogs((await getLogEntries({ userID: selectedUser.id })) as CheckoutLogEntry[]);
+            } else {
+                // Reset the state when no user is selected
+                setRadiosCheckedOut([]);
+                setFetchedLogs([]);
+            }
+        };
 
-            // Set available radios (not checked out)
-            setAvailableRadios(radios.filter((radio) => !radio.checked_out_user));
-        } else {
-            // Reset the state when no user is selected
-            setRadiosCheckedOut([]);
-            setAvailableRadios([]);
-        }
-    }, [selectedUser, radios]);
+        fetchRadios();
+    }, [selectedUser]);
 
     // Handle check-in for a specific radio
     const handleCheckIn = async (radio: Radio) => {
-        setRadiosCheckedOut((prevRadios) => prevRadios.filter((r) => r.ID !== radio.ID));
-        setCheckoutLog((prevLog) => [
-            ...prevLog,
-            { operation: 'check-in', radioID: radio.ID, userName: selectedUser?.name, date: new Date().toISOString() },
-        ]);
+        await checkInRadio(radio.ID); // Call the API to check in the radio
 
-        // Update backend and local state
-        await fetch('/api/admin/radios', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ID: radio.ID,
-                checked_out_user: null,
-                checkout_date: null,
-            }),
-        });
+        if (selectedUser) {
+            const updatedLogs = await getLogEntries({ userID: selectedUser.id });
+            setFetchedLogs(updatedLogs as CheckoutLogEntry[]);
 
-        // Add radio back to available list after check-in
-        setAvailableRadios((prevRadios) => [...prevRadios, { ...radio, checked_out_user: null, checkout_date: null }]);
+            const updatedRadios = await getRadios({ userID: selectedUser.id });
+            setRadiosCheckedOut(updatedRadios as Radio[]);
+        }
     };
 
-    const handleCheckInAll = () => {
-        setRadiosCheckedOut([]);
-        setCheckoutLog((prevLog) => [
-            ...prevLog,
-            ...radiosCheckedOut.map((radio) => ({
-                operation: 'check-in',
-                radioID: radio.ID,
-                userName: selectedUser?.name,
-                date: new Date().toISOString(),
-            })),
-        ]);
+    const handleCheckInAll = async () => {
+        // Run all check-ins in parallel using Promise.all
+        await Promise.all(
+            radiosCheckedOut.map((radio) => checkInRadio(radio.ID)) // Call the API to check in the radio
+        );
+
+        if (selectedUser) {
+            // Fetch logs once all radios are checked in
+            const updatedLogs = await getLogEntries({ userID: selectedUser.id });
+            setFetchedLogs(updatedLogs as CheckoutLogEntry[]);
+
+            // Fetch updated radios checked out by the user to ensure the state is accurate
+            const updatedRadios = await getRadios({ userID: selectedUser.id });
+            setRadiosCheckedOut(updatedRadios as Radio[]);
+        }
     };
 
     const handleCheckout = async (radioID: string) => {
-        const newRadio = availableRadios.find((radio) => radio.ID === radioID);
-        if (newRadio && selectedUser) {
+        console.log('Checking out radio:', radioID);
+        if (selectedUser) {
+            const result = await checkOutRadio(radioID, selectedUser.id, true); // Call the API to check out the radio
+            console.log('Checkout result:', result);
             // Update local state
-            setRadiosCheckedOut((prevRadios) => [...prevRadios, newRadio]);
-            setCheckoutLog((prevLog) => [
-                ...prevLog,
-                {
-                    operation: 'check-out',
-                    radioID: newRadio.ID,
-                    userName: selectedUser.name,
-                    date: new Date().toISOString(),
-                },
-            ]);
+            const updatedLogs = await getLogEntries({ userID: selectedUser.id });
+            setFetchedLogs(updatedLogs as CheckoutLogEntry[]);
 
-            // Update backend
-            await fetch('/api/admin/radios', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ID: radioID,
-                    checked_out_user: selectedUser.id,
-                    checkout_date: new Date().toISOString(),
-                }),
-            });
-
-            // Remove radio from available radios after checkout
-            setAvailableRadios((prevRadios) => prevRadios.filter((radio) => radio.ID !== radioID));
+            const updatedRadios = await getRadios({ userID: selectedUser.id });
+            setRadiosCheckedOut(updatedRadios as Radio[]);
         }
-    };
-
-    const handleCheckInThenCheckout = async (radioID: string) => {
-        const radio = radiosCheckedOut.find((r) => r.ID === radioID);
-        if (radio) {
-            await handleCheckIn(radio); // Check the radio back in
-            await handleCheckout(radioID); // Check it out to the same or new user
-        }
-    };
-
-    const isAlreadyCheckedOut = (radioID: string) => {
-        return radiosCheckedOut.some((radio) => radio.ID === radioID);
     };
 
     if (!selectedUser) {
-        return <p>{/*No user selected*/}</p>;
+        return null;
     }
 
     return (
-        <div>
-            <h2 className="text-xl font-semibold">Welcome, {selectedUser.name}!</h2>
-
-            {/* Radios checked out to the user */}
-            <RadioList
-                radios={radiosCheckedOut}
-                onCheckIn={handleCheckIn}
-                onCheckInAll={handleCheckInAll}
-            />
-
-            {/* Checkout new radios */}
-            <div className="mt-6">
-                <RadioCheckout
-                    onCheckout={handleCheckout}
-                    onCheckInThenCheckout={handleCheckInThenCheckout}
-                    isAlreadyCheckedOut={isAlreadyCheckedOut}
-                    resetTrigger={selectedUser.id} // Pass user.id to reset RadioCheckout on user change
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                {/* Radios checked out to the user */}
+                <RadioList
+                    radios={radiosCheckedOut}
+                    onCheckIn={handleCheckIn}
+                    onCheckInAll={handleCheckInAll}
                 />
+
+                {/* Checkout new radios */}
+                <div className="mt-2">
+                    <RadioCheckout
+                        onCheckout={handleCheckout}
+                        resetTrigger={selectedUser.id} // Pass user.id to reset RadioCheckout on user change
+                    />
+                </div>
             </div>
 
-            {/* Checkout Log */}
-            <div className="mt-6">
-                <CheckoutLog initialLogs={checkoutLog} />
+            <div>
+                <CheckoutLog
+                    user={selectedUser}
+                    logs={fetchedLogs}
+                />
             </div>
         </div>
     );

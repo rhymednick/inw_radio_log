@@ -9,6 +9,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'; // TooltipProvider and Tooltip from shadcn
 import { SquareX } from 'lucide-react'; // SquareX icon from Lucide React
 import { Button } from '@/components/ui/button';
+import { Console } from 'console';
 
 interface RadioListProps {
     radios: Radio[];
@@ -89,19 +90,18 @@ export const columns = (onCheckIn: (radio: Radio) => void, onCheckInAll: () => v
 ];
 
 const RadioList: React.FC<RadioListProps> = ({ radios, onCheckIn, onCheckInAll }) => {
+    if (radios.length === 0) {
+        console.log('No radios checked out'); // Log message if no radios are checked out
+        return null; // Return nothing if no radios are checked out
+    }
+
     return (
         <div className="radio-list">
-            {radios.length > 0 ? (
-                <>
-                    <h3 className="text-lg font-bold mb-4 mt-2">Radios Currently Checked Out</h3>
-                    <DataTable
-                        columns={columns(onCheckIn, onCheckInAll)} // Pass both onCheckIn and onCheckInAll
-                        data={radios}
-                    />
-                </>
-            ) : (
-                <p>No radios currently checked out.</p>
-            )}
+            <h3 className="text-lg font-bold mb-4 mt-2">Radios Currently Checked Out</h3>
+            <DataTable
+                columns={columns(onCheckIn, onCheckInAll)} // Pass both onCheckIn and onCheckInAll
+                data={radios}
+            />
         </div>
     );
 };

@@ -1,6 +1,4 @@
-// File: /components/radio-card.tsx
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -17,65 +15,77 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Radio, User } from '@/types/types';
+import { checkOutRadio, checkInRadio, updateRadio } from '@/lib/api'; // Importing helper functions
 
 interface RadioCardProps {
     radio: Radio;
-    onFieldChange: (ID: string, field: keyof Radio, value: any) => void;
-    onSave: (ID: string) => void;
     onDelete: (ID: string) => void;
-    isChanged: boolean;
+    onRefresh: (ID: string) => void; // New callback for refreshing the parent component
+    users: User[];
 }
 
-const RadioCard: React.FC<RadioCardProps> = ({ radio, onFieldChange, onSave, onDelete, isChanged }) => {
+const RadioCard: React.FC<RadioCardProps> = ({ radio, onDelete, onRefresh, users }) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [users, setUsers] = useState<User[]>([]); // Initialize users as an empty array
-    const [isLoadingUsers, setIsLoadingUsers] = useState(true); // Loading state for users
+    const [comment, setComment] = useState<string>(radio.Comments || '');
+    const debouncingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Fetch the list of users when the component mounts
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await fetch('/api/admin/users');
-                const data = await response.json();
-
-                if (Array.isArray(data)) {
-                    setUsers(data); // Ensure we set users only if the response is an array
-                } else {
-                    console.error('Expected an array of users but got:', data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch users', error);
-            } finally {
-                setIsLoadingUsers(false); // Set loading to false
-            }
-        };
-
-        fetchUsers();
-    }, []);
-
-    // Get the user name for the checked out radio
-    const checkedOutUser = radio.checked_out_user
-        ? users.find((user) => user.id === radio.checked_out_user)?.name
-        : null;
+    // Handle save for any radio field (except comments, which is handled separately)
+    const handleFieldSave = async (field: keyof Radio, value: any) => {
+        const updatedRadio = { ...radio, [field]: value };
+        try {
+            await updateRadio(updatedRadio);
+            onRefresh(radio.ID); // Notify parent to refresh data
+        } catch (error) {
+            console.error(`Error updating radio field ${field}:`, error);
+        }
+    };
 
     // Handle checkbox logic to ensure mutual exclusivity
-    const handlePartiallyDamagedChange = (checked: boolean) => {
+    const handlePartiallyDamagedChange = async (checked: boolean) => {
         if (checked) {
-            onFieldChange(radio.ID, 'Nonfunctional', false); // Uncheck Nonfunctional if Partially Damaged is checked
+            await handleFieldSave('Nonfunctional', false); // Uncheck Nonfunctional if Partially Damaged is checked
         }
-        onFieldChange(radio.ID, 'PartiallyDamaged', checked);
+        await handleFieldSave('PartiallyDamaged', checked);
     };
 
-    const handleNonfunctionalChange = (checked: boolean) => {
+    const handleNonfunctionalChange = async (checked: boolean) => {
         if (checked) {
-            onFieldChange(radio.ID, 'PartiallyDamaged', false); // Uncheck Partially Damaged if Nonfunctional is checked
+            await handleFieldSave('PartiallyDamaged', false); // Uncheck Partially Damaged if Nonfunctional is checked
         }
-        onFieldChange(radio.ID, 'Nonfunctional', checked);
+        await handleFieldSave('Nonfunctional', checked);
     };
 
-    const handleCheckOutChange = (userId: string | null) => {
-        onFieldChange(radio.ID, 'checked_out_user', userId);
-        onFieldChange(radio.ID, 'checkout_date', userId ? new Date().toISOString() : null); // Set the current date if checked out
+    // Handle check-out logic and immediately reflect changes by calling the helper functions
+    const handleCheckOutChange = async (userId: string | null) => {
+        try {
+            if (userId) {
+                await checkOutRadio(radio.ID, userId, true);
+            } else {
+                await checkInRadio(radio.ID);
+            }
+            onRefresh(radio.ID); // Notify parent to refresh data after check-out or check-in
+        } catch (error) {
+            console.error('Error checking out/in the radio:', error);
+        }
+    };
+
+    // Handle debounced save for comments
+    const handleCommentChange = (newComment: string) => {
+        setComment(newComment);
+
+        // Clear any existing timeout to reset the debounce timer
+        if (debouncingTimeoutRef.current) {
+            clearTimeout(debouncingTimeoutRef.current);
+        }
+
+        // Set a new timeout to save the comment after a delay (e.g., 2 seconds)
+        debouncingTimeoutRef.current = setTimeout(async () => {
+            try {
+                await handleFieldSave('Comments', newComment);
+            } catch (error) {
+                console.error('Error saving comments:', error);
+            }
+        }, 2000); // Wait 2 seconds after the user stops typing
     };
 
     return (
@@ -141,8 +151,8 @@ const RadioCard: React.FC<RadioCardProps> = ({ radio, onFieldChange, onSave, onD
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-2">Comments</label>
                     <Textarea
-                        value={radio.Comments || ''}
-                        onChange={(e) => onFieldChange(radio.ID, 'Comments', e.target.value)}
+                        value={comment}
+                        onChange={(e) => handleCommentChange(e.target.value)}
                         className="w-full px-2 py-1 border rounded"
                         rows={3}
                     />
@@ -163,41 +173,30 @@ const RadioCard: React.FC<RadioCardProps> = ({ radio, onFieldChange, onSave, onD
                 </div>
                 <div className="mt-4">
                     <label className="block text-sm font-medium mb-2">Checked Out To</label>
-                    {isLoadingUsers ? (
-                        <p>Loading users...</p>
-                    ) : (
-                        <select
-                            value={radio.checked_out_user || ''}
-                            onChange={(e) => handleCheckOutChange(e.target.value || null)}
-                            className="w-full px-2 py-1 border rounded"
-                        >
-                            <option value="">-- Not Checked Out --</option>
-                            {users.map((user) => (
-                                <option
-                                    key={user.id}
-                                    value={user.id}
-                                >
-                                    {user.name}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                    {checkedOutUser && (
+
+                    <select
+                        value={radio.checked_out_user || ''}
+                        onChange={(e) => handleCheckOutChange(e.target.value || null)}
+                        className="w-full px-2 py-1 border rounded"
+                    >
+                        <option value=""></option>
+                        {users.map((user) => (
+                            <option
+                                key={user.id}
+                                value={user.id}
+                            >
+                                {user.name}
+                            </option>
+                        ))}
+                    </select>
+                    {radio.checked_out_user && (
                         <p className="mt-2 text-sm text-slate-500">
-                            Checked out to: {checkedOutUser} on {new Date(radio.checkout_date || '').toLocaleString()}
+                            Checked out to: {users.find((u) => u.id === radio.checked_out_user)?.name} on{' '}
+                            {new Date(radio.checkout_date || '').toLocaleString()}
                         </p>
                     )}
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-center">
-                {/* Hide the save button when no changes have been made */}
-                <Button
-                    onClick={() => onSave(radio.ID)}
-                    className={`${!isChanged ? 'hidden' : ''}`}
-                >
-                    Save
-                </Button>
-            </CardFooter>
         </Card>
     );
 };

@@ -5,6 +5,7 @@ import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import path from 'path';
 import { Radio } from '@/types/types'; // Import the shared Radio type
+import { addLogEntry } from '@/lib/api'; // Use the utility function for logging operations
 
 // Define the path for the radios database file
 const radiosFilePath = path.join(process.cwd(), 'data', 'radios.json');
@@ -18,95 +19,68 @@ async function initRadiosDB() {
     await radiosDB.write();
 }
 
-// Helper function to log check-in and check-out operations via the checkout-log route
-async function logCheckoutOperation(
-    request: Request,
-    radioID: string,
-    userID: string,
-    operation: 'check-out' | 'check-in'
-) {
-    const { protocol, host } = new URL(request.url); // Dynamically get protocol and host from the request
-    const baseUrl = `${protocol}//${host}`; // Construct the full base URL
-
-    console.log(`Logging operation: ${operation} for radioID: ${radioID} and userID: ${userID}`);
-
-    await fetch(`${baseUrl}/api/admin/checkout-log`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            radioID,
-            userID,
-            operation,
-        }),
-    });
-}
-
-// Get the list of radios
-export async function GET() {
+// Get the list of radios, optionally filtered by radioID or userID (but not both)
+export async function GET(request: Request) {
     await initRadiosDB();
-    return NextResponse.json(radiosDB.data || []);
+
+    const { searchParams } = new URL(request.url);
+    const radioID = searchParams.get('radioID');
+    const userID = searchParams.get('userID');
+
+    // Ensure that only one of radioID or userID is provided, not both
+    if (radioID && userID) {
+        return NextResponse.json({ error: 'Specify either radioID or userID, not both.' }, { status: 400 });
+    }
+
+    // Filter radios by radioID or userID
+    let filteredRadios = radiosDB.data;
+    if (radioID) {
+        filteredRadios = filteredRadios.filter((radio) => radio.ID === radioID);
+    } else if (userID) {
+        filteredRadios = filteredRadios.filter((radio) => radio.checked_out_user === userID);
+    }
+
+    return NextResponse.json(filteredRadios);
 }
 
-// Add a new radio
+// Add or update a radio
 export async function POST(request: Request) {
-    const { ID, Name } = await request.json();
-
-    if (!ID || !Name) {
-        return NextResponse.json({ error: 'ID and Name are required.' }, { status: 400 });
-    }
-
-    await initRadiosDB();
-
-    // Check if the radio with the same ID already exists
-    const existingRadio = radiosDB.data.find((radio: Radio) => radio.ID === ID);
-    if (existingRadio) {
-        return NextResponse.json({ error: 'A radio with this ID already exists.' }, { status: 400 });
-    }
-
-    // Add the new radio (initialize `checked_out_user` and `checkout_date`)
-    radiosDB.data.push({
-        ID,
-        Name,
-        Comments: '',
-        PartiallyDamaged: false,
-        Nonfunctional: false,
-        checked_out_user: null,
-        checkout_date: null,
-    });
-
-    await radiosDB.write();
-
-    return NextResponse.json({ message: 'Radio added successfully' });
-}
-
-// Update a radio's non-fixed fields (Comments, PartiallyDamaged, Nonfunctional, checked_out_user, checkout_date)
-export async function PUT(request: Request) {
-    const { ID, Comments, PartiallyDamaged, Nonfunctional, checked_out_user, checkout_date } = await request.json();
+    const { ID, Name, checked_out_user, checkout_date, Comments, Nonfunctional, PartiallyDamaged } =
+        await request.json();
 
     if (!ID) {
         return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
     }
-
+    console.log(request);
     await initRadiosDB();
 
-    // Find the radio
-    const radio = radiosDB.data.find((r: Radio) => r.ID === ID);
+    // Check if the radio exists
+    let radio = radiosDB.data.find((r: Radio) => r.ID === ID);
+
     if (!radio) {
-        return NextResponse.json({ error: 'Radio not found.' }, { status: 404 });
+        // Add a new radio
+        radio = {
+            ID,
+            Name,
+            checked_out_user: null,
+            checkout_date: null,
+            Comments: '',
+            Nonfunctional: false,
+            PartiallyDamaged: false,
+        };
+        radiosDB.data.push(radio);
     }
 
-    console.log(`Processing radio ${ID} with user ${checked_out_user}`);
-
-    // Check-in logic: if `checked_out_user` is set to null, this is a check-in
+    // Determine if this is a check-in operation (checked_out_user set to null)
     const isCheckIn = checked_out_user === null && radio.checked_out_user !== null;
 
-    // Log the checkout or check-in
+    // Log the checkout or check-in using the utility function
     if (checked_out_user && checked_out_user !== radio.checked_out_user) {
         console.log(`Checking out radio ${ID} to user ${checked_out_user}`);
-        await logCheckoutOperation(request, ID, checked_out_user, 'check-out'); // Pass `request` here
+        await addLogEntry(ID, checked_out_user, 'check-out');
     } else if (isCheckIn) {
         console.log(`Checking in radio ${ID} from user ${radio.checked_out_user}`);
-        await logCheckoutOperation(request, ID, radio.checked_out_user as string, 'check-in'); // Pass `request` here
+        await addLogEntry(ID, radio.checked_out_user as string, 'check-in');
     }
 
     // Update fields

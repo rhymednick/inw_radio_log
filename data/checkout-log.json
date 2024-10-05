@@ -106,5 +106,233 @@
     "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
     "operation": "check-out",
     "date": "2024-09-26T21:31:53.056Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-27T23:52:53.549Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-27T23:53:04.307Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-27T23:56:45.886Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-28T00:21:05.822Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:26:17.462Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-28T00:29:21.834Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-28T00:29:34.933Z"
+  },
+  {
+    "radioID": "5",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:30:10.830Z"
+  },
+  {
+    "radioID": "5",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:30:11.071Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:35:04.334Z"
+  },
+  {
+    "radioID": "5",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:42:43.641Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-28T00:53:59.126Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:56:17.195Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T00:58:43.613Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T01:00:57.048Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T01:00:57.346Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-09-28T01:01:55.254Z"
+  },
+  {
+    "radioID": "2",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-09-28T01:07:35.198Z"
+  },
+  {
+    "radioID": "2",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-09-28T01:07:35.526Z"
+  },
+  {
+    "radioID": "2",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-28T01:08:16.547Z"
+  },
+  {
+    "radioID": "2",
+    "userID": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "operation": "check-out",
+    "date": "2024-09-28T01:08:27.839Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-10-04T22:52:54.329Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-10-04T23:18:32.196Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-10-04T23:19:46.549Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-10-04T23:28:20.997Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-10-04T23:29:24.475Z"
+  },
+  {
+    "radioID": "4",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-in",
+    "date": "2024-10-04T23:31:10.809Z"
+  },
+  {
+    "radioID": "6",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-out",
+    "date": "2024-10-04T23:58:34.261Z"
+  },
+  {
+    "radioID": "6",
+    "userID": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
+    "operation": "check-in",
+    "date": "2024-10-04T23:58:40.042Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:15:55.854Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:15:55.854Z"
+  },
+  {
+    "radioID": "8",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:15:55.854Z"
+  },
+  {
+    "radioID": "5",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:15:55.854Z"
+  },
+  {
+    "radioID": "8",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:21:23.355Z"
+  },
+  {
+    "radioID": "5",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:21:23.355Z"
+  },
+  {
+    "radioID": "1",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:21:23.355Z"
+  },
+  {
+    "radioID": "3",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-in",
+    "date": "2024-10-05T00:21:23.355Z"
+  },
+  {
+    "radioID": "8",
+    "userID": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
+    "operation": "check-out",
+    "date": "2024-10-05T00:39:16.505Z"
   }
 ]

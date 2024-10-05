@@ -18,15 +18,18 @@ async function initCheckoutLogDB() {
     await checkoutLogDB.write();
 }
 
-// Get the checkout log entries, with optional filtering by radioID
+// Get the checkout log entries, with optional filtering by radioID or userID
 export async function GET(request: Request) {
     await initCheckoutLogDB();
 
     const { searchParams } = new URL(request.url);
     const radioID = searchParams.get('radioID');
+    const userID = searchParams.get('userID');
 
-    // If a radioID is provided, filter the log entries by that radioID
-    const filteredLog = radioID ? checkoutLogDB.data.filter((entry) => entry.radioID === radioID) : checkoutLogDB.data;
+    // Filter log entries by radioID or userID if provided
+    const filteredLog = checkoutLogDB.data.filter((entry) => {
+        return (!radioID || entry.radioID === radioID) && (!userID || entry.userID === userID);
+    });
 
     return NextResponse.json(filteredLog);
 }

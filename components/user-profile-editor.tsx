@@ -7,6 +7,10 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import ProfilePhotoDialog from '@/components/profile-photo-dialog';
 import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
+import React from 'react';
+import { User } from '@/types/types';
+import { addOrUpdateUser, getUsers } from '@/lib/api';
+//import { User as UserIcon } from 'lucide-react';
 
 interface UserProfileEditorProps {
     id?: string; // Add an ID prop to support updates
@@ -29,6 +33,16 @@ export const UserProfileEditor: React.FC<UserProfileEditorProps> = ({
     const [profilePhoto, setProfilePhoto] = useState(initialProfilePhoto); // Optional profile photo
     const [existingUserWarning, setExistingUserWarning] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
+    const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const users = (await getUsers()) as User[];
+            setUsers(users);
+        };
+
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         if (!initialUsername && username !== '') {
@@ -41,10 +55,7 @@ export const UserProfileEditor: React.FC<UserProfileEditorProps> = ({
     }, [username, profilePhoto, initialUsername, initialProfilePhoto]);
 
     const checkIfUserExists = async (name: string) => {
-        const response = await fetch('/api/admin/users');
-        const data = await response.json();
-
-        const userExists = data.users.some(
+        const userExists = users.some(
             (user: { id: string; name: string }) => user.name.toLowerCase() === name.toLowerCase() && user.id !== id
         );
 
@@ -55,32 +66,22 @@ export const UserProfileEditor: React.FC<UserProfileEditorProps> = ({
         if (existingUserWarning) {
             return;
         }
-
-        const payload: { id?: string; name: string; profilePhoto?: string } = {
-            name: username,
-        };
-
-        if (profilePhoto) {
-            payload.profilePhoto = profilePhoto;
-        }
+        var userInfo: User = { id: '', name: username, profilePhoto: '', lastUpdated: new Date().toISOString() };
 
         if (id) {
-            payload.id = id;
+            userInfo.id = id;
         }
-
-        const response = await fetch('/api/admin/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-
-        if (response.ok) {
+        if (profilePhoto) {
+            var result = await addOrUpdateUser(userInfo, profilePhoto);
+        } else {
+            var result = await addOrUpdateUser(userInfo);
+        }
+        if (result) {
             toast.success('User info saved!');
             onSave?.();
             onOpenChange(false); // Close the sheet after saving
         } else {
-            const { error } = await response.json();
-            toast.error(error || 'Failed to save user info');
+            toast.error('Failed to save user info');
         }
     };
 

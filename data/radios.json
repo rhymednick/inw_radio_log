@@ -1,23 +1,5 @@
 [
   {
-    "ID": "1",
-    "Name": "ICOM",
-    "Comments": "",
-    "PartiallyDamaged": false,
-    "Nonfunctional": false,
-    "checked_out_user": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
-    "checkout_date": "2024-09-26T21:08:37.030Z"
-  },
-  {
-    "ID": "3",
-    "Name": "ICOM",
-    "Comments": "",
-    "PartiallyDamaged": false,
-    "Nonfunctional": false,
-    "checked_out_user": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
-    "checkout_date": "2024-09-26T20:35:15.450Z"
-  },
-  {
     "ID": "4",
     "Name": "ICOM",
     "Comments": "",
@@ -25,15 +7,6 @@
     "Nonfunctional": false,
     "checked_out_user": null,
     "checkout_date": null
-  },
-  {
-    "ID": "5",
-    "Name": "ICOM",
-    "Comments": "",
-    "PartiallyDamaged": false,
-    "Nonfunctional": false,
-    "checked_out_user": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
-    "checkout_date": "2024-09-26T19:58:53.244Z"
   },
   {
     "ID": "6",
@@ -45,22 +18,13 @@
     "checkout_date": null
   },
   {
-    "ID": "2",
-    "Name": "ICOM",
-    "Comments": "",
-    "PartiallyDamaged": false,
-    "Nonfunctional": false,
-    "checked_out_user": "15f8d91d-7a10-4b42-8d21-72a115b3c037",
-    "checkout_date": "2024-09-26T21:31:52.850Z"
-  },
-  {
     "ID": "8",
     "Name": "ICOM",
     "Comments": "",
     "PartiallyDamaged": false,
     "Nonfunctional": false,
     "checked_out_user": "3c1bea58-b6fe-4a01-8f87-1b2da9875cdc",
-    "checkout_date": "2024-09-26T20:35:02.085Z"
+    "checkout_date": "2024-10-05T00:39:16.474Z"
   },
   {
     "ID": "9",
@@ -574,5 +538,41 @@
     "Nonfunctional": false,
     "checked_out_user": null,
     "checkout_date": null
+  },
+  {
+    "ID": "1",
+    "Name": "ICOM",
+    "checked_out_user": null,
+    "checkout_date": null,
+    "Comments": "",
+    "Nonfunctional": false,
+    "PartiallyDamaged": false
+  },
+  {
+    "ID": "5",
+    "Name": "ICOM",
+    "checked_out_user": null,
+    "checkout_date": null,
+    "Comments": "",
+    "Nonfunctional": false,
+    "PartiallyDamaged": false
+  },
+  {
+    "ID": "3",
+    "Name": "ICOM",
+    "checked_out_user": null,
+    "checkout_date": null,
+    "Comments": "",
+    "Nonfunctional": false,
+    "PartiallyDamaged": false
+  },
+  {
+    "ID": "2",
+    "Name": "ICOM",
+    "checked_out_user": "8c5bf71e-93c4-4322-a22d-ba3e36daaa71",
+    "checkout_date": "2024-09-28T01:08:16.484Z",
+    "Comments": "",
+    "Nonfunctional": false,
+    "PartiallyDamaged": false
   }
 ]

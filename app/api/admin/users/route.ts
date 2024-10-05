@@ -1,35 +1,21 @@
-// File: /app/api/admin/users/route.ts
-
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
+import { v4 as uuidv4 } from 'uuid';
 import { Low } from 'lowdb';
 import path from 'path';
 import fs from 'fs';
 import { JSONFile } from 'lowdb/node';
-import { User } from '@/types/types'; // Import the shared User type
+import { User } from '@/types/types';
+import { saveUserProfilePhoto } from '@/lib/api'; // Use the new utility
 
-// Define the path for the users database file
 const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
 const usersAdapter = new JSONFile<User[]>(usersFilePath);
-const usersDB = new Low(usersAdapter, []); // Initialize with default data (empty array for users)
+const usersDB = new Low(usersAdapter, []);
 
-// Initialize the users database with an empty array if necessary
+// Initialize the users database
 async function initUsersDB() {
     await usersDB.read();
-    usersDB.data = usersDB.data || []; // Ensure the users array is present
+    usersDB.data = usersDB.data || [];
     await usersDB.write();
-}
-
-// Function to save a base64 image as a file and return the relative URL
-async function saveImage(base64Image: string, userName: string) {
-    const matches = base64Image.match(/^data:image\/jpeg;base64,(.+)$/);
-    if (matches && matches.length === 2) {
-        const imageBuffer = Buffer.from(matches[1], 'base64');
-        const imagePath = path.join(process.cwd(), 'public', 'images', `${userName}.jpg`);
-        await fs.promises.writeFile(imagePath, imageBuffer);
-        return `/images/${userName}.jpg`; // Return relative URL
-    }
-    return null;
 }
 
 // POST request handler to create or update a user
@@ -39,10 +25,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
     }
 
-    // Initialize the users database
     await initUsersDB();
 
-    // Check for duplicate username in case of both add or update
     const duplicateUser = usersDB.data.find(
         (user: User) => user.name.toLowerCase() === name.toLowerCase() && user.id !== id
     );
@@ -50,32 +34,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `User with the name "${name}" already exists.` }, { status: 400 });
     }
 
-    // If a profile photo is provided, try to save it
     let savedImageUrl = null;
     if (profilePhoto) {
-        savedImageUrl = await saveImage(profilePhoto, name);
-        if (!savedImageUrl) {
-            return NextResponse.json({ error: 'Failed to save profile photo.' }, { status: 500 });
-        }
+        savedImageUrl = await saveUserProfilePhoto(name, profilePhoto);
     }
 
-    // If there's no ID, it's a new user
     if (!id) {
         const newUser: User = {
             id: uuidv4(),
             name,
-            profilePhoto: savedImageUrl || '', // Allow empty profile photo if not provided
+            profilePhoto: savedImageUrl || '',
             lastUpdated: new Date().toISOString(),
         };
-        usersDB.data.push(newUser); // Add new user
+        usersDB.data.push(newUser);
     } else {
-        // If there's an ID, we are updating an existing user
         const existingUser = usersDB.data.find((user: User) => user.id === id);
         if (!existingUser) {
             return NextResponse.json({ error: 'User not found.' }, { status: 404 });
         }
 
-        // Update existing user
         existingUser.name = name;
         if (savedImageUrl) {
             existingUser.profilePhoto = savedImageUrl;
@@ -84,33 +61,49 @@ export async function POST(request: Request) {
     }
 
     await usersDB.write();
-    return NextResponse.json({ message: 'User successfully saved/updated' });
+
+    const message = savedImageUrl ? 'User successfully saved/updated' : 'User saved, but profile photo upload failed';
+    return NextResponse.json({ message });
 }
 
-// Function to fetch all users (GET request)
-export async function GET() {
+// Function to fetch all users or a single user by userID (GET request)
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const userID = searchParams.get('userID');
+
+    // Initialize the users database
     await initUsersDB();
+
+    // If userID is provided, fetch a specific user
+    if (userID) {
+        const user = usersDB.data.find((u: User) => u.id === userID);
+        if (user) {
+            return NextResponse.json({ user });
+        } else {
+            return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+        }
+    }
+
+    // If no userID is provided, return all users
     const users = usersDB.data || [];
     return NextResponse.json({ users });
 }
 
-// Function to delete a user by ID (DELETE request)
+// DELETE request handler to delete a user by ID
 export async function DELETE(request: Request) {
     const { id } = await request.json();
     if (!id) {
         return NextResponse.json({ error: 'User ID is required for deletion.' }, { status: 400 });
     }
 
-    // Initialize the users database
     await initUsersDB();
 
-    // Find and remove the user by ID
     const userIndex = usersDB.data.findIndex((user: User) => user.id === id);
     if (userIndex === -1) {
         return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
-    usersDB.data.splice(userIndex, 1); // Remove the user from the array
+    usersDB.data.splice(userIndex, 1);
     await usersDB.write();
 
     return NextResponse.json({ message: 'User deleted successfully' });

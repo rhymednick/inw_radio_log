@@ -2,31 +2,24 @@
 
 'use client'; // Client-side interactivity required
 
+'use client'; // Client-side interactivity required
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { SquarePlus } from 'lucide-react'; // Lucide icon
-import { Button } from '@/components/ui/button';
 import { Radio } from '@/types/types'; // Assuming we are importing Radio type
+import { getRadios, getUserById } from '@/lib/api';
 
 interface RadioCheckoutProps {
     onCheckout: (radioID: string) => void;
-    onCheckInThenCheckout: (radioID: string) => void;
-    isAlreadyCheckedOut: (radioID: string) => boolean;
     resetTrigger: string;
 }
 
-const RadioCheckout: React.FC<RadioCheckoutProps> = ({
-    onCheckout,
-    onCheckInThenCheckout,
-    isAlreadyCheckedOut,
-    resetTrigger,
-}) => {
+const RadioCheckout: React.FC<RadioCheckoutProps> = ({ onCheckout, resetTrigger }) => {
     const [radioID, setRadioID] = useState('');
     const [radioInfo, setRadioInfo] = useState<{ name: string; checkedOutTo: string | null } | null>(null);
     const [checkedOutUser, setCheckedOutUser] = useState<string | null>(null); // User the radio is checked out to
     const [error, setError] = useState('');
-    const [isDialogOpen, setIsDialogOpen] = useState(false); // State to handle custom dialog
 
     // Reset form when resetTrigger changes (i.e., when the selectedUser changes)
     useEffect(() => {
@@ -48,10 +41,7 @@ const RadioCheckout: React.FC<RadioCheckoutProps> = ({
     // Fetch radio info from the radios route
     const fetchRadioInfo = async (radioID: string) => {
         try {
-            const response = await fetch(`/api/admin/radios`);
-            const data: Radio[] = await response.json();
-
-            const radio = data.find((radio) => radio.ID === radioID);
+            const radio = (await getRadios({ radioID: radioID })) as Radio;
             if (radio) {
                 setRadioInfo({
                     name: radio.Name,
@@ -79,9 +69,8 @@ const RadioCheckout: React.FC<RadioCheckoutProps> = ({
     // Fetch user info from the users route
     const fetchUserName = async (userID: string) => {
         try {
-            const response = await fetch(`/api/admin/users`);
-            const { users } = await response.json();
-            const user = users.find((user: any) => user.id === userID);
+            const user = await getUserById(userID);
+
             if (user) {
                 setCheckedOutUser(user.name);
             } else {
@@ -98,18 +87,10 @@ const RadioCheckout: React.FC<RadioCheckoutProps> = ({
             return;
         }
 
-        if (isAlreadyCheckedOut(radioID)) {
-            setIsDialogOpen(true); // Open custom confirmation dialog
-        } else {
+        if (!isAlreadyCheckedOut(radioID)) {
             onCheckout(radioID);
             clearForm(); // Clear the form only if successful checkout
         }
-    };
-
-    const handleConfirmCheckIn = () => {
-        onCheckInThenCheckout(radioID);
-        clearForm(); // Clear the form after successful check-in/checkout
-        setIsDialogOpen(false);
     };
 
     const clearForm = () => {
@@ -119,69 +100,50 @@ const RadioCheckout: React.FC<RadioCheckoutProps> = ({
         setError('');
     };
 
+    const isAlreadyCheckedOut = (radioID: string) => {
+        return radioInfo && radioInfo.checkedOutTo;
+    };
+
     return (
-        <div className="radio-checkout flex items-center space-x-4">
-            {/* Radio ID Input */}
-            <Input
-                type="text"
-                value={radioID}
-                onChange={(e) => setRadioID(e.target.value)}
-                placeholder="ID"
-                className="w-14" // Small text box
-            />
+        <>
+            <h3 className="text-lg font-bold mb-4">Check Out Radio</h3>
+            <div className="radio-checkout flex items-center space-x-4">
+                {/* Radio ID Input */}
+                <Input
+                    type="text"
+                    value={radioID}
+                    onChange={(e) => setRadioID(e.target.value)}
+                    placeholder="ID"
+                    className="w-14" // Small text box
+                />
 
-            {/* Radio Info Label */}
-            <div className="flex items-center space-x-2">
-                {radioInfo ? (
-                    <span className={`${checkedOutUser ? 'text-red-500' : 'text-black'} font-semibold`}>
-                        {radioInfo.name}
-                        {checkedOutUser && <span className="ml-2">(Already checked out to {checkedOutUser})</span>}
-                    </span>
-                ) : (
-                    <span className="text-gray-500">Enter radio ID</span>
-                )}
+                {/* Radio Info Label */}
+                <div className="flex items-center space-x-2">
+                    {radioInfo ? (
+                        <span className={`${checkedOutUser ? 'text-red-500' : 'text-black'} font-semibold`}>
+                            {radioInfo.name}
+                            {checkedOutUser && <span className="ml-2"> - Checked out to {'\n' + checkedOutUser}</span>}
+                        </span>
+                    ) : (
+                        <span className="text-gray-500">Enter radio ID</span>
+                    )}
+                </div>
+
+                {/* Checkout Button with Icon */}
+                <SquarePlus
+                    className={`${
+                        !radioInfo || isAlreadyCheckedOut(radioID)
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-green-500 cursor-pointer'
+                    }`}
+                    size={24}
+                    onClick={!radioInfo || isAlreadyCheckedOut(radioID) ? undefined : handleCheckout} // Disable if radio is already checked out or no radio info
+                />
+
+                {/* Error Message */}
+                {error && <p className="text-red-500 mt-2">{error}</p>}
             </div>
-
-            {/* Checkout Button with Icon */}
-            <SquarePlus
-                className={`${!radioInfo ? 'text-gray-400 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                size={24}
-                onClick={radioInfo ? handleCheckout : undefined} // Disable if radioInfo is not available
-            />
-
-            {/* Error Message */}
-            {error && <p className="text-red-500 mt-2">{error}</p>}
-
-            {/* Confirmation Dialog */}
-            <Dialog
-                open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Check In and Check Out?</DialogTitle>
-                    </DialogHeader>
-                    <p>
-                        Radio {radioID} is already checked out to {checkedOutUser}. Would you like to check it in for
-                        them and then check it out for yourself?
-                    </p>
-                    <DialogFooter>
-                        <Button
-                            onClick={() => setIsDialogOpen(false)}
-                            variant="outline"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleConfirmCheckIn}
-                            variant="default"
-                        >
-                            Yes, Check In &amp; Check Out
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+        </>
     );
 };
 
