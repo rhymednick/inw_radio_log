@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
 import React from 'react';
 import { User } from '@/types/types';
-import { addOrUpdateUser, getUsers } from '@/lib/api';
+import { addUser, updateUser, getUsers } from '@/lib/api';
 //import { User as UserIcon } from 'lucide-react';
 
 interface UserProfileEditorProps {
@@ -18,7 +18,7 @@ interface UserProfileEditorProps {
     initialProfilePhoto?: string; // Profile photo is now optional
     open: boolean; // Control whether the sheet is open
     onOpenChange: (open: boolean) => void; // Function to change open state
-    onSave?: () => void;
+    onSave?: (user: User | undefined) => void;
 }
 
 export const UserProfileEditor: React.FC<UserProfileEditorProps> = ({
@@ -66,19 +66,17 @@ export const UserProfileEditor: React.FC<UserProfileEditorProps> = ({
         if (existingUserWarning) {
             return;
         }
-        var userInfo: User = { id: '', name: username, profilePhoto: '', lastUpdated: new Date().toISOString() };
 
-        if (id) {
-            userInfo.id = id;
-        }
-        if (profilePhoto) {
-            var result = await addOrUpdateUser(userInfo, profilePhoto);
-        } else {
-            var result = await addOrUpdateUser(userInfo);
-        }
+        const result = id
+            ? await updateUser(id, username, profilePhoto) // Update existing user
+            : await addUser(username, profilePhoto); // Add new user
+
         if (result) {
+            const users = (await getUsers()) as User[];
+            const updatedUser: User | undefined = users.find((user) => user.name === username);
+
             toast.success('User info saved!');
-            onSave?.();
+            onSave?.(updatedUser); // Pass the updated user data to the onSave callback
             onOpenChange(false); // Close the sheet after saving
         } else {
             toast.error('Failed to save user info');

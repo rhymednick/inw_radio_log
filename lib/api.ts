@@ -2,6 +2,8 @@
 
 import { CheckoutLogEntry, Radio, User } from '@/types/types';
 import { getBaseUrl } from './get-base-url';
+// import { promises as fs } from 'fs';
+// import path from 'path';
 
 // Store the base URL globally
 const baseUrl = getBaseUrl();
@@ -76,43 +78,75 @@ export async function deleteUser(userID: string): Promise<string | undefined> {
     }
 }
 
-// Utility function to save a profile photo
-export async function saveUserProfilePhoto(userName: string, base64Image: string): Promise<string | null> {
-    const matches = base64Image.match(/^data:image\/jpeg;base64,(.+)$/);
-    if (matches && matches.length === 2) {
-        const imageBuffer = Buffer.from(matches[1], 'base64');
-        const lowerCaseFileName = userName.toLowerCase(); // Convert to lowercase
-        const imagePath = `/public/images/${lowerCaseFileName}.jpg`;
+// // Utility function to save a profile photo
+// export async function saveUserProfilePhoto(userName: string, base64Image: string): Promise<string | null> {
+//     const matches = base64Image.match(/^data:image\/jpeg;base64,(.+)$/);
+//     console.log('Base64 Image:', base64Image);
+//     console.log('Matches:', matches);
+//     if (matches && matches.length === 2) {
+//         const imageBuffer = Buffer.from(matches[1], 'base64');
+//         const sanitizedFileName = sanitizeFileName(userName) + '.jpg'; // Sanitize the file name
+//         const imageDirectory = path.join(process.cwd(), 'public', 'images'); // Ensure correct path
+//         const imagePath = path.join(imageDirectory, sanitizedFileName);
 
-        try {
-            await fetch(imagePath, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/octet-stream',
-                },
-                body: imageBuffer,
-            });
-            return `/images/${lowerCaseFileName}.jpg`; // Return relative URL
-        } catch (error) {
-            console.error('Error saving image:', error);
-            return null;
-        }
+//         console.log('Saving image to:', imagePath);
+//         try {
+//             // Ensure the images directory exists
+//             await fs.mkdir(imageDirectory, { recursive: true });
+
+//             // Write the file to the filesystem
+//             await fs.writeFile(imagePath, imageBuffer as string | NodeJS.ArrayBufferView);
+//             return `/images/${sanitizedFileName}`; // Return relative URL
+//         } catch (error) {
+//             console.error('Error saving image:', error);
+//             return null;
+//         }
+//     }
+//     return null;
+// }
+// Utility function to add a new user
+export async function addUser(name: string, profilePhoto?: string): Promise<string | undefined> {
+    const requestBody: Partial<User> = {
+        name,
+    };
+    if (profilePhoto) {
+        requestBody.profilePhoto = profilePhoto; // Include profilePhoto only if it's provided
     }
-    return null;
-}
+    try {
+        const response = await fetch(`${baseUrl}/api/admin/users`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
 
-// Utility function to add or update a user
-export async function addOrUpdateUser(user: User, profilePhoto?: string): Promise<string | undefined> {
-    let savedImageUrl: string | null = null;
+        if (!response.ok) {
+            console.error('Error adding user');
+            return undefined;
+        }
+
+        const data = await response.json();
+        return data.message;
+    } catch (error) {
+        console.error('Network error when adding user:', error);
+        return undefined;
+    }
+}
+// Utility function to update an existing user
+export async function updateUser(id: string, name?: string, profilePhoto?: string): Promise<string | undefined> {
+    // Build the requestBody only with fields that are provided
+    const requestBody: Partial<User> = {
+        id, // Required for update
+    };
+
+    if (name) {
+        requestBody.name = name; // Include name only if it's provided
+    }
 
     if (profilePhoto) {
-        savedImageUrl = await saveUserProfilePhoto(user.name, profilePhoto);
+        requestBody.profilePhoto = profilePhoto; // Include profilePhoto only if it's provided
     }
-
-    const requestBody = {
-        ...user,
-        profilePhoto: savedImageUrl || user.profilePhoto || '', // Handle partial success for image saving
-    };
 
     try {
         const response = await fetch(`${baseUrl}/api/admin/users`, {
@@ -124,21 +158,18 @@ export async function addOrUpdateUser(user: User, profilePhoto?: string): Promis
         });
 
         if (!response.ok) {
-            console.error('Error adding/updating user');
+            console.error('Error updating user');
             return undefined;
         }
 
         const data = await response.json();
-        if (savedImageUrl === null && profilePhoto) {
-            return `${data.message} (User saved, but profile photo upload failed)`;
-        }
-
         return data.message;
     } catch (error) {
-        console.error('Network error when adding/updating user:', error);
+        console.error('Network error when updating user:', error);
         return undefined;
     }
 }
+
 // Utility function to get radios
 export async function getRadios(params?: GetByParams): Promise<Radio[] | Radio | undefined> {
     let url = `${baseUrl}/api/admin/radios`;

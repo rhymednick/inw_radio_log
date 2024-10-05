@@ -43,8 +43,11 @@ const ProfilePhotoCaptureTool: React.FC<ProfilePhotoCaptureToolProps> = ({ onIma
                         ref={webcamRef}
                         screenshotFormat="image/jpeg"
                         className="w-full h-full object-cover"
+                        forceScreenshotSourceSize={true}
                         videoConstraints={{
                             facingMode: 'user',
+                            width: 1024,
+                            height: 1024,
                         }}
                     />
                     {/* Darkened overlay with solid-edged transparent circle that goes to the edges */}

@@ -1,3 +1,5 @@
+// app/api/admin/users/route.ts
+
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { Low } from 'lowdb';
@@ -5,7 +7,6 @@ import path from 'path';
 import fs from 'fs';
 import { JSONFile } from 'lowdb/node';
 import { User } from '@/types/types';
-import { saveUserProfilePhoto } from '@/lib/api'; // Use the new utility
 
 const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
 const usersAdapter = new JSONFile<User[]>(usersFilePath);
@@ -18,6 +19,43 @@ async function initUsersDB() {
     await usersDB.write();
 }
 
+// Function to save the profile photo to disk
+async function saveUserProfilePhoto(
+    userName: string,
+    base64Image: string,
+    overwriteFileName?: string
+): Promise<string | null> {
+    try {
+        const lowerCaseFileName = userName.toLowerCase().replace(/\s+/g, '_'); // Ensure it's file-safe
+        const fileName = overwriteFileName || `${lowerCaseFileName}.jpg`; // Use existing file name if overwriting
+        const imagePath = path.join(process.cwd(), 'public', 'images', fileName);
+        const base64Data = base64Image.replace(/^data:image\/jpeg;base64,/, '');
+
+        await fs.promises.writeFile(imagePath, base64Data, 'base64');
+        return `/images/${fileName}`; // Return the relative URL for the profile image
+    } catch (error) {
+        console.error('Error saving image:', error);
+        return null;
+    }
+}
+// Function to rename the profile photo when the user name changes
+async function renameProfilePhoto(oldName: string, newName: string): Promise<string | null> {
+    try {
+        const oldFileName = oldName.toLowerCase().replace(/\s+/g, '_') + '.jpg';
+        const newFileName = newName.toLowerCase().replace(/\s+/g, '_') + '.jpg';
+        const oldImagePath = path.join(process.cwd(), 'public', 'images', oldFileName);
+        const newImagePath = path.join(process.cwd(), 'public', 'images', newFileName);
+
+        if (fs.existsSync(oldImagePath)) {
+            await fs.promises.rename(oldImagePath, newImagePath);
+            return `/images/${newFileName}`;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error renaming image:', error);
+        return null;
+    }
+}
 // POST request handler to create or update a user
 export async function POST(request: Request) {
     const { id, name, profilePhoto } = await request.json();
@@ -27,43 +65,61 @@ export async function POST(request: Request) {
 
     await initUsersDB();
 
-    const duplicateUser = usersDB.data.find(
-        (user: User) => user.name.toLowerCase() === name.toLowerCase() && user.id !== id
-    );
-    if (duplicateUser) {
-        return NextResponse.json({ error: `User with the name "${name}" already exists.` }, { status: 400 });
-    }
-
-    let savedImageUrl = null;
-    if (profilePhoto) {
-        savedImageUrl = await saveUserProfilePhoto(name, profilePhoto);
-    }
-
+    // Handle ADD operation
     if (!id) {
+        // Check if a user with the same name exists (case-insensitive match)
+        const duplicateUser = usersDB.data.find((user: User) => user.name.toLowerCase() === name.toLowerCase());
+        if (duplicateUser) {
+            return NextResponse.json({ error: `User with the name "${name}" already exists.` }, { status: 400 });
+        }
+
+        // Save the profile image if provided
+        let savedImageUrl = profilePhoto ? await saveUserProfilePhoto(name, profilePhoto) : '';
+        savedImageUrl = savedImageUrl || ''; // Ensure it's always a string
+
+        // Create new user
         const newUser: User = {
             id: uuidv4(),
             name,
-            profilePhoto: savedImageUrl || '',
+            profilePhoto: savedImageUrl,
             lastUpdated: new Date().toISOString(),
         };
         usersDB.data.push(newUser);
-    } else {
-        const existingUser = usersDB.data.find((user: User) => user.id === id);
-        if (!existingUser) {
-            return NextResponse.json({ error: 'User not found.' }, { status: 404 });
-        }
+        await usersDB.write();
 
-        existingUser.name = name;
-        if (savedImageUrl) {
-            existingUser.profilePhoto = savedImageUrl;
-        }
-        existingUser.lastUpdated = new Date().toISOString();
+        return NextResponse.json({ message: 'User successfully added', user: newUser }, { status: 201 });
     }
+
+    // Handle UPDATE operation
+    const existingUser = usersDB.data.find((user: User) => user.id === id);
+    if (!existingUser) {
+        return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    // Save the new profile image if provided
+    let savedImageUrl = existingUser.profilePhoto;
+    if (profilePhoto && profilePhoto.startsWith('data:image/jpeg;base64,')) {
+        savedImageUrl =
+            (await saveUserProfilePhoto(name, profilePhoto, path.basename(existingUser.profilePhoto))) ||
+            existingUser.profilePhoto;
+    }
+
+    // If the user name changes, rename the profile image file if it exists
+    if (name !== existingUser.name && existingUser.profilePhoto) {
+        const newImageUrl = await renameProfilePhoto(existingUser.name, name);
+        if (newImageUrl) {
+            savedImageUrl = newImageUrl;
+        }
+    }
+
+    // Update the user record
+    existingUser.name = name;
+    existingUser.profilePhoto = savedImageUrl || existingUser.profilePhoto;
+    existingUser.lastUpdated = new Date().toISOString();
 
     await usersDB.write();
 
-    const message = savedImageUrl ? 'User successfully saved/updated' : 'User saved, but profile photo upload failed';
-    return NextResponse.json({ message });
+    return NextResponse.json({ message: 'User successfully updated', user: existingUser });
 }
 
 // Function to fetch all users or a single user by userID (GET request)

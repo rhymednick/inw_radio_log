@@ -11,6 +11,7 @@ import UserCard from '@/components/user-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CircleUserRound } from 'lucide-react';
+import { UserProfileEditor } from '@/components/user-profile-editor';
 
 interface UserSelectorProps {
     users: User[];
@@ -23,6 +24,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [lastActivity, setLastActivity] = useState<number>(Date.now());
+    const [isEditorOpen, setIsEditorOpen] = useState(false); // Control editor open/close state
 
     const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
@@ -86,7 +88,15 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
     // Handle adding a new user (for now, just log a message)
     const handleAddNewUser = () => {
         console.log(`Adding new user with name "${query}"`); // Simple log for testing
-        alert(`Adding new user with name "${query}"`); // Display a simple message for testing
+        setIsEditorOpen(true); // Open the editor
+    };
+
+    const handleUserSaved = (user: User | undefined) => {
+        setIsEditorOpen(false); // Close editor after saving
+        if (user) {
+            users.concat(user);
+            handleUserSelect(user); // Select the saved user
+        }
     };
 
     return (
@@ -165,6 +175,15 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {isEditorOpen && (
+                <UserProfileEditor
+                    initialUsername={query}
+                    open={isEditorOpen}
+                    onOpenChange={setIsEditorOpen}
+                    onSave={handleUserSaved}
+                />
+            )}
         </div>
     );
 };
