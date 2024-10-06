@@ -1,4 +1,3 @@
-// components/user-selector.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -85,7 +84,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
         };
     }, []);
 
-    // Handle adding a new user (for now, just log a message)
+    // Handle adding a new user
     const handleAddNewUser = () => {
         console.log(`Adding new user with name "${query}"`); // Simple log for testing
         setIsEditorOpen(true); // Open the editor
@@ -98,6 +97,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
             handleUserSelect(user); // Select the saved user
         }
     };
+
+    // Check if the current query matches an existing user
+    const isExactMatch = users.some((user) => user.name.toLowerCase() === query.toLowerCase());
 
     return (
         <div className="user-selector">
@@ -155,14 +157,13 @@ const UserSelector: React.FC<UserSelectorProps> = ({ users, onSelect }) => {
                             placeholder="Type your name..."
                             className="w-full"
                         />
-                        {filteredUsers.length === 0 && (
-                            <Button
-                                variant="outline"
-                                onClick={handleAddNewUser}
-                            >
-                                Add New User
-                            </Button>
-                        )}
+                        <Button
+                            variant="outline"
+                            onClick={handleAddNewUser}
+                            disabled={isExactMatch} // Disable the button if there's an exact match
+                        >
+                            Add New User
+                        </Button>
                         <Button onClick={handleClearSearch}>Clear search</Button>
                     </div>
 
