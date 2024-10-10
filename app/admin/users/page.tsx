@@ -18,8 +18,7 @@ const UsersPage: React.FC = () => {
         const fetchUsers = async () => {
             const response = await fetch('/api/admin/users');
             const data = await response.json();
-            const sortedUsers = data.users.sort((a: User, b: User) => a.name.localeCompare(b.name)); // Alphabetical order
-            setUsers(sortedUsers);
+            setUsers(data.users);
         };
 
         fetchUsers();
@@ -41,8 +40,7 @@ const UsersPage: React.FC = () => {
         fetch('/api/admin/users')
             .then((res) => res.json())
             .then((data) => {
-                const sortedUsers = data.users.sort((a: User, b: User) => a.name.localeCompare(b.name));
-                setUsers(sortedUsers);
+                setUsers(data.users);
             });
     };
 

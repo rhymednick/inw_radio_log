@@ -1,3 +1,4 @@
+// components/radio-card.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,7 +7,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { SquareX } from 'lucide-react';
 import {
     AlertDialog,
-    AlertDialogTrigger,
     AlertDialogContent,
     AlertDialogHeader,
     AlertDialogTitle,
@@ -93,28 +93,31 @@ const RadioCard: React.FC<RadioCardProps> = ({ radio, onDelete, onRefresh, users
             key={radio.ID}
             className="relative"
         >
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="link"
+                            className="absolute top-3 right-1"
+                            aria-label="Delete"
+                            onClick={() => setIsDialogOpen(true)} // Manually trigger dialog open
+                        >
+                            <SquareX className="text-red-500" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>
+                            Delete Radio {radio.ID} - {radio.Name}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+
+            {/* Dialog for delete confirmation */}
             <AlertDialog
                 open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
+                onOpenChange={setIsDialogOpen} // Control dialog open/close state
             >
-                <AlertDialogTrigger asChild>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="link"
-                                    className="absolute top-3 right-1"
-                                    aria-label="Delete"
-                                >
-                                    <SquareX className="text-red-500" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Delete Radio {radio.ID}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </AlertDialogTrigger>
                 <AlertDialogContent className="bg-white">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Radio</AlertDialogTitle>

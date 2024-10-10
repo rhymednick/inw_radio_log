@@ -31,9 +31,7 @@ const RadiosPage: React.FC = () => {
             // Fetch radios
             const radiosData = (await getRadios()) as Radio[];
             if (radiosData) {
-                // Sort radios by ID (numerically if possible)
-                const sortedRadios = radiosData.sort((a: Radio, b: Radio) => parseInt(a.ID) - parseInt(b.ID));
-                setRadios(sortedRadios);
+                setRadios(radiosData);
             }
 
             // Fetch users

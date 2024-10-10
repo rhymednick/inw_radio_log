@@ -30,7 +30,12 @@ export async function getUsers(): Promise<User[] | undefined> {
             return undefined;
         }
         const data = await response.json();
-        return data.users;
+        const users: User[] = data.users;
+
+        // Sort users by name before returning
+        users.sort((a, b) => a.name.localeCompare(b.name));
+
+        return users;
     } catch (error) {
         console.error('Network error when fetching users:', error);
         return undefined;
@@ -78,32 +83,6 @@ export async function deleteUser(userID: string): Promise<string | undefined> {
     }
 }
 
-// // Utility function to save a profile photo
-// export async function saveUserProfilePhoto(userName: string, base64Image: string): Promise<string | null> {
-//     const matches = base64Image.match(/^data:image\/jpeg;base64,(.+)$/);
-//     console.log('Base64 Image:', base64Image);
-//     console.log('Matches:', matches);
-//     if (matches && matches.length === 2) {
-//         const imageBuffer = Buffer.from(matches[1], 'base64');
-//         const sanitizedFileName = sanitizeFileName(userName) + '.jpg'; // Sanitize the file name
-//         const imageDirectory = path.join(process.cwd(), 'public', 'images'); // Ensure correct path
-//         const imagePath = path.join(imageDirectory, sanitizedFileName);
-
-//         console.log('Saving image to:', imagePath);
-//         try {
-//             // Ensure the images directory exists
-//             await fs.mkdir(imageDirectory, { recursive: true });
-
-//             // Write the file to the filesystem
-//             await fs.writeFile(imagePath, imageBuffer as string | NodeJS.ArrayBufferView);
-//             return `/images/${sanitizedFileName}`; // Return relative URL
-//         } catch (error) {
-//             console.error('Error saving image:', error);
-//             return null;
-//         }
-//     }
-//     return null;
-// }
 // Utility function to add a new user
 export async function addUser(name: string, profilePhoto?: string): Promise<string | undefined> {
     const requestBody: Partial<User> = {
@@ -169,6 +148,27 @@ export async function updateUser(id: string, name?: string, profilePhoto?: strin
         return undefined;
     }
 }
+// Sort radios by ID
+// Radio IDs are in the format "ModelNameIndex" (e.g., "TR01"), but the model may be blank.
+// Sort radios first by model name alphabetically, then by index numerically.
+function sortRadios(radios: Radio[]): Radio[] {
+    return radios.sort((a, b) => {
+        // Extract model and index for both radios
+        const regex = /^([a-zA-Z]*)(\d+)$/;
+        const [, modelA, indexA] = a.ID.match(regex) || ['', '', ''];
+        const [, modelB, indexB] = b.ID.match(regex) || ['', '', ''];
+
+        // Compare models alphabetically (empty string comes first)
+        if (modelA !== modelB) {
+            if (modelA === '') return -1; // Empty model comes first
+            if (modelB === '') return 1;
+            return modelA.localeCompare(modelB); // Compare alphabetically
+        }
+
+        // If models are the same, compare the index numerically
+        return Number(indexA) - Number(indexB);
+    });
+}
 
 // Utility function to get radios
 export async function getRadios(params?: GetByParams): Promise<Radio[] | Radio | undefined> {
@@ -198,7 +198,8 @@ export async function getRadios(params?: GetByParams): Promise<Radio[] | Radio |
             return data[0] as Radio;
         }
         // Otherwise, return an array
-        return data as Radio[];
+        // Sort radios by ID before returning
+        return sortRadios(data as Radio[]);
     } catch (error) {
         console.error('Network error when fetching radios:', error);
         return undefined;
