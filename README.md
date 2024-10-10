@@ -47,13 +47,13 @@ TBD - After review and testing, let's see what issues come up.
 
 ### Web Endpoints
 
--   `**/**` - Main end-user entry point for checking out radios.
--   `**/admin/**` - Central location for admin operations. Not intended for end-user use. Since the database is easy to
+-   `/` - Main end-user entry point for checking out radios.
+-   `/admin/` - Central location for admin operations. Not intended for end-user use. Since the database is easy to
     rebuild from GitHub, there is no security. Anyone that can find this page can use it.
--   `**/admin/radios/**` - Tool for editing the radios database. Radios can be added or deleted, and have their settings
+-   `/admin/radios/` - Tool for editing the radios database. Radios can be added or deleted, and have their settings
     modified (including who they are checked out to).
--   `**/admin/users/**` - Tool for editing the users database. New users can be added but not removed; this feature may
-    be added in the future. Username and profile photos can be changed here.
+-   `/admin/users/` - Tool for editing the users database. New users can be added but not removed; this feature may be
+    added in the future. Username and profile photos can be changed here.
 
 ### API Endpoints
 
@@ -64,11 +64,11 @@ database access operations are provided to the application via helper methods at
 adding to the source code and want to access the API endpoints for any reason, ONLY do it through a method that you add
 to this `/lib/api.ts`. This makes it much easier to debug database or data-access issues.
 
--   `**/api/admin/archive-log/**` - (POST) Call this endpoint to backup the checkout log.
--   `**/api/admin/backup-user-database/**` - (POST) Call this endpoint to backup the user database.
--   `**/api/admin/checkout-log/**` - (GET, POST) Call this endpoint to retrieve the ledger of past checkout operations
-    or add new ones.
--   `**/api/admin/init-user-database/**` - (POST) Call this endpoint to create a new user database from the list of
-    leads for Critical Northwest 2024.
--   `**/api/admin/radios/**` - (GET, POST, DELETE) Call this endpoint to manage the radios database.
--   `**/api/admin/users/**` - (GET, POST, DELETE) Call this endpoint to manage the users database.
+-   `/api/admin/archive-log/` - (POST) Call this endpoint to backup the checkout log.
+-   `/api/admin/backup-user-database/` - (POST) Call this endpoint to backup the user database.
+-   `/api/admin/checkout-log/` - (GET, POST) Call this endpoint to retrieve the ledger of past checkout operations or
+    add new ones.
+-   `/api/admin/init-user-database/` - (POST) Call this endpoint to create a new user database from the list of leads
+    for Critical Northwest 2024.
+-   `/api/admin/radios/` - (GET, POST, DELETE) Call this endpoint to manage the radios database.
+-   `/api/admin/users/` - (GET, POST, DELETE) Call this endpoint to manage the users database.
