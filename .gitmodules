@@ -1,0 +1,3 @@
+[submodule "data"]
+	path = data
+	url = git@github.com:rhymednick/inw-radio-app-data.git
