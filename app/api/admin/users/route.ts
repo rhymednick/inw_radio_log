@@ -28,7 +28,7 @@ async function saveUserProfilePhoto(
     try {
         const lowerCaseFileName = userName.toLowerCase().replace(/\s+/g, '_'); // Ensure it's file-safe
         const fileName = overwriteFileName || `${lowerCaseFileName}.jpg`; // Use existing file name if overwriting
-        const imagePath = path.join(process.cwd(), 'public', 'images', fileName);
+        const imagePath = path.join(process.cwd(), 'data', 'profile-images', fileName);
         const base64Data = base64Image.replace(/^data:image\/jpeg;base64,/, '');
 
         await fs.promises.writeFile(imagePath, base64Data, 'base64');
@@ -43,8 +43,8 @@ async function renameProfilePhoto(oldName: string, newName: string): Promise<str
     try {
         const oldFileName = oldName.toLowerCase().replace(/\s+/g, '_') + '.jpg';
         const newFileName = newName.toLowerCase().replace(/\s+/g, '_') + '.jpg';
-        const oldImagePath = path.join(process.cwd(), 'public', 'images', oldFileName);
-        const newImagePath = path.join(process.cwd(), 'public', 'images', newFileName);
+        const oldImagePath = path.join(process.cwd(), 'data', 'profile-images', oldFileName);
+        const newImagePath = path.join(process.cwd(), 'data', 'profile-images', newFileName);
 
         if (fs.existsSync(oldImagePath)) {
             await fs.promises.rename(oldImagePath, newImagePath);
@@ -157,6 +157,17 @@ export async function DELETE(request: Request) {
     const userIndex = usersDB.data.findIndex((user: User) => user.id === id);
     if (userIndex === -1) {
         return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    const userToDelete = usersDB.data[userIndex];
+    const profileImageFileName = userToDelete.profilePhoto ? path.basename(userToDelete.profilePhoto) : null;
+    if (profileImageFileName) {
+        const profileImagePath = path.join(process.cwd(), 'data', 'profile-images', profileImageFileName);
+        const archivePath = path.join(process.cwd(), 'data', 'profile-images', 'archive', profileImageFileName);
+        if (fs.existsSync(profileImagePath)) {
+            // Move the profile image to the archive folder
+            await fs.promises.rename(profileImagePath, archivePath);
+        }
     }
 
     usersDB.data.splice(userIndex, 1);
