@@ -27,13 +27,60 @@ https://nodejs.org/en/download/prebuilt-installer.
 **GitHub Desktop w/CLI** - (optional) GitHub Desktop is used to retrieve the application source files and upload the
 modified data files at the end of the event. There are numerous ways to retrieve and modify files in a GitHub repository
 and any of them would work. GitHub desktop is just a common one. Install the latest version from
-https://central.github.com/deployments/desktop/desktop/latest/win32.
+https://central.github.com/deployments/desktop/desktop/latest/win32. The installation instructions assume that the git
+command is installed in your path, so do whatever is needed in order to get that there if you want to follow those
+instructions.
 
 #### Install and Run Application
 
-1. Download source files from GitHub - https://github.com/rhymednick/inw_radio_log.git
-2. From source root (the place with package.json), run `npm install`.
-3. Note host URL and open it. Default: http://localhost:3000.
+##### (Optional) Gain Access to Private Event Database
+
+The source code for this tool is kept in a public repo, but the data that's used during our events is private.
+Therefore, the data is kept in a private GitHub repo that is linked to this project as a private submodule. Access to
+that module is granted via public key. To gain access:
+
+1. From a command shell, generate your public key using the following command.
+
+```
+ssh-keygen -t rsa -b 4096 -C "<your email address>"
+```
+
+2. Email your public key file to rhy.mednick@gmail.com and ask for access to the private repository. If you didn't
+   specify a file name when you generated the key, the file is in your user folder at /.ssh/id_rsa.pub.
+3. Once your request has been processed, you can continue to the next section.
+
+##### Download, Install, and Run the Application
+
+1. Download the source files from GitHub by entering one of the following commands into a command shell. First, navigate
+   to the location where you'd like to keep the files. A folder will be generated.
+
+-   **Option 1:** Download app with private data (assuming you have been granted access)
+
+```
+git clone --recursive git@github.com:rhymednick/inw_radio_log.git
+```
+
+-   **Option 2:** Download app with no data.
+
+```
+git clone git@github.com:rhymednick/inw_radio_log.git
+```
+
+2. Switch to the project root and install the dependencies with the following commands.
+
+```
+cd inw_radio_log
+npm install
+```
+
+3. Start the application.
+
+```
+npm run dev
+```
+
+4. Note host URL and open it. Default: http://localhost:3000. The source code is compiled the first time it is accessed,
+   so each page will be slow the first time it's accessed.
 
 ### Data Preservation
 
