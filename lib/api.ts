@@ -2,8 +2,6 @@
 
 import { CheckoutLogEntry, Radio, User } from '@/types/types';
 import { getBaseUrl } from './get-base-url';
-// import { promises as fs } from 'fs';
-// import path from 'path';
 
 // Store the base URL globally
 const baseUrl = getBaseUrl();
@@ -21,7 +19,10 @@ interface GetByUserID {
 // Union type for the two possible query params
 type GetByParams = GetByRadioID | GetByUserID;
 
-// Utility function to fetch all users
+/**
+ * Utility function to fetch all users.
+ * @returns A list of all users, sorted by name, or undefined if an error occurs.
+ */
 export async function getUsers(): Promise<User[] | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/users`);
@@ -42,7 +43,11 @@ export async function getUsers(): Promise<User[] | undefined> {
     }
 }
 
-// Utility function to fetch a single user by ID
+/**
+ * Utility function to fetch a single user by ID.
+ * @param userID - The ID of the user to fetch.
+ * @returns The user object or undefined if not found or an error occurs.
+ */
 export async function getUserById(userID: string): Promise<User | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/users?userID=${userID}`);
@@ -58,7 +63,11 @@ export async function getUserById(userID: string): Promise<User | undefined> {
     }
 }
 
-// Utility function to delete a user by ID
+/**
+ * Utility function to delete a user by ID.
+ * @param userID - The ID of the user to delete.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function deleteUser(userID: string): Promise<string | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/users`, {
@@ -83,7 +92,12 @@ export async function deleteUser(userID: string): Promise<string | undefined> {
     }
 }
 
-// Utility function to add a new user
+/**
+ * Utility function to add a new user.
+ * @param name - The name of the user to add.
+ * @param profilePhoto - Optional base64 encoded profile photo.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function addUser(name: string, profilePhoto?: string): Promise<string | undefined> {
     const requestBody: Partial<User> = {
         name,
@@ -112,7 +126,14 @@ export async function addUser(name: string, profilePhoto?: string): Promise<stri
         return undefined;
     }
 }
-// Utility function to update an existing user
+
+/**
+ * Utility function to update an existing user.
+ * @param id - The ID of the user to update.
+ * @param name - Optional new name for the user.
+ * @param profilePhoto - Optional base64 encoded profile photo.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function updateUser(id: string, name?: string, profilePhoto?: string): Promise<string | undefined> {
     // Build the requestBody only with fields that are provided
     const requestBody: Partial<User> = {
@@ -148,29 +169,12 @@ export async function updateUser(id: string, name?: string, profilePhoto?: strin
         return undefined;
     }
 }
-// Sort radios by ID
-// Radio IDs are in the format "ModelNameIndex" (e.g., "TR01"), but the model may be blank.
-// Sort radios first by model name alphabetically, then by index numerically.
-function sortRadios(radios: Radio[]): Radio[] {
-    return radios.sort((a, b) => {
-        // Extract model and index for both radios
-        const regex = /^([a-zA-Z]*)(\d+)$/;
-        const [, modelA, indexA] = a.ID.match(regex) || ['', '', ''];
-        const [, modelB, indexB] = b.ID.match(regex) || ['', '', ''];
 
-        // Compare models alphabetically (empty string comes first)
-        if (modelA !== modelB) {
-            if (modelA === '') return -1; // Empty model comes first
-            if (modelB === '') return 1;
-            return modelA.localeCompare(modelB); // Compare alphabetically
-        }
-
-        // If models are the same, compare the index numerically
-        return Number(indexA) - Number(indexB);
-    });
-}
-
-// Utility function to get radios
+/**
+ * Utility function to get radios.
+ * @param params - Optional parameters to filter radios by radioID or userID.
+ * @returns A list of radios or a single radio, or undefined if an error occurs.
+ */
 export async function getRadios(params?: GetByParams): Promise<Radio[] | Radio | undefined> {
     let url = `${baseUrl}/api/admin/radios`;
 
@@ -191,7 +195,6 @@ export async function getRadios(params?: GetByParams): Promise<Radio[] | Radio |
         }
 
         const data = await response.json();
-        console.log('Data:', data);
         // If parameters were specified, and one of them was radioID,
         // return a single radio object
         if (params && 'radioID' in params) {
@@ -206,7 +209,12 @@ export async function getRadios(params?: GetByParams): Promise<Radio[] | Radio |
     }
 }
 
-// Utility function to add a new radio
+/**
+ * Utility function to add a new radio.
+ * @param ID - The ID of the radio to add.
+ * @param Name - The name of the radio to add.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function addRadio(ID: string, Name: string): Promise<string | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/radios`, {
@@ -231,7 +239,11 @@ export async function addRadio(ID: string, Name: string): Promise<string | undef
     }
 }
 
-// Utility function to delete a radio by ID
+/**
+ * Utility function to delete a radio by ID.
+ * @param ID - The ID of the radio to delete.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function deleteRadio(ID: string): Promise<string | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/radios`, {
@@ -256,7 +268,13 @@ export async function deleteRadio(ID: string): Promise<string | undefined> {
     }
 }
 
-// Utility function to check out a radio
+/**
+ * Utility function to check out a radio.
+ * @param radioID - The ID of the radio to check out.
+ * @param userID - The ID of the user checking out the radio.
+ * @param force - Whether to force checkout even if already checked out.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function checkOutRadio(
     radioID: string,
     userID: string,
@@ -304,7 +322,11 @@ export async function checkOutRadio(
     }
 }
 
-// Utility function to check in a radio
+/**
+ * Utility function to check in a radio.
+ * @param radioID - The ID of the radio to check in.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function checkInRadio(radioID: string): Promise<string | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/radios`, {
@@ -332,24 +354,41 @@ export async function checkInRadio(radioID: string): Promise<string | undefined>
     }
 }
 
-// Utility function to report damage on a radio
+/**
+ * Utility function to report damage on a radio.
+ * @param radioID - The ID of the radio.
+ * @param userName - The name of the user reporting damage.
+ * @param comment - The damage description.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function reportDamage(radioID: string, userName: string, comment: string): Promise<string | undefined> {
     const newComment = `Damage Report: ${comment}`;
-
     return appendRadioComment(radioID, userName, newComment);
 }
 
-// Utility function to report a radio as nonfunctional
+/**
+ * Utility function to report a radio as nonfunctional.
+ * @param radioID - The ID of the radio.
+ * @param userName - The name of the user reporting it.
+ * @param comment - The nonfunctional description.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function reportNonFunctional(
     radioID: string,
     userName: string,
     comment: string
 ): Promise<string | undefined> {
     const newComment = `Nonfunctional Report: ${comment}`;
-
     return appendRadioComment(radioID, userName, newComment);
 }
-// Utility function to append a comment to a radio
+
+/**
+ * Utility function to append a comment to a radio.
+ * @param radioID - The ID of the radio.
+ * @param userName - The name of the user appending the comment.
+ * @param comment - The comment to append.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function appendRadioComment(
     radioID: string,
     userName: string,
@@ -366,7 +405,11 @@ export async function appendRadioComment(
     return updateRadio(radio);
 }
 
-// Utility function to update the entire radio object by replacing it
+/**
+ * Utility function to update the entire radio object by replacing it.
+ * @param radio - The radio object to update.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function updateRadio(radio: Radio): Promise<string | undefined> {
     try {
         // First, delete the existing radio with the same ID
@@ -399,7 +442,13 @@ export async function updateRadio(radio: Radio): Promise<string | undefined> {
     }
 }
 
-// Utility function to add a new log entry
+/**
+ * Utility function to add a new log entry.
+ * @param radioID - The ID of the radio involved in the operation.
+ * @param userID - The ID of the user involved in the operation.
+ * @param operation - The operation being logged.
+ * @returns A success message or undefined if an error occurs.
+ */
 export async function addLogEntry(radioID: string, userID: string, operation: string): Promise<string | undefined> {
     try {
         const response = await fetch(`${baseUrl}/api/admin/checkout-log`, {
@@ -424,6 +473,11 @@ export async function addLogEntry(radioID: string, userID: string, operation: st
     }
 }
 
+/**
+ * Utility function to get log entries.
+ * @param params - Parameters to filter log entries by radioID or userID.
+ * @returns A list of checkout log entries or undefined if an error occurs.
+ */
 export async function getLogEntries(params: GetByParams): Promise<CheckoutLogEntry[] | undefined> {
     let url = `${baseUrl}/api/admin/checkout-log`;
 
@@ -447,4 +501,30 @@ export async function getLogEntries(params: GetByParams): Promise<CheckoutLogEnt
         console.error('Network error when fetching log entries:', error);
         return undefined;
     }
+}
+
+/**
+ * Utility function to sort radios by their ID.
+ * Radio IDs are in the format "ModelNameIndex" (e.g., "TR01"), but the model may be blank.
+ * Sort radios first by model name alphabetically, then by index numerically.
+ * @param radios - The list of radios to sort.
+ * @returns A sorted list of radios.
+ */
+function sortRadios(radios: Radio[]): Radio[] {
+    return radios.sort((a, b) => {
+        // Extract model and index for both radios
+        const regex = /^([a-zA-Z]*)(\d+)$/;
+        const [, modelA, indexA] = a.ID.match(regex) || ['', '', ''];
+        const [, modelB, indexB] = b.ID.match(regex) || ['', '', ''];
+
+        // Compare models alphabetically (empty string comes first)
+        if (modelA !== modelB) {
+            if (modelA === '') return -1; // Empty model comes first
+            if (modelB === '') return 1;
+            return modelA.localeCompare(modelB); // Compare alphabetically
+        }
+
+        // If models are the same, compare the index numerically
+        return Number(indexA) - Number(indexB);
+    });
 }

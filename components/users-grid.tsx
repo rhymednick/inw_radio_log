@@ -7,10 +7,11 @@ import UserCard from '@/components/user-card'; // Import the UserCard component
 interface UsersGridProps {
     users: User[];
     onUserClick: (user: User) => void; // Prop for handling user clicks
+    onUserDelete?: (user: User) => void; // Optional prop for handling user deletions
     shouldSort?: boolean; // Optional prop to control sorting, defaults to true
 }
 
-const UsersGrid: React.FC<UsersGridProps> = ({ users, onUserClick, shouldSort = true }) => {
+const UsersGrid: React.FC<UsersGridProps> = ({ users, onUserClick, onUserDelete, shouldSort = true }) => {
     // Conditionally sort users alphabetically by name if shouldSort is true
     const displayedUsers = shouldSort
         ? [...users].sort((a, b) => a.name.localeCompare(b.name)) // Spread to avoid mutating original array
@@ -23,6 +24,7 @@ const UsersGrid: React.FC<UsersGridProps> = ({ users, onUserClick, shouldSort = 
                     key={user.id}
                     user={user}
                     onClick={() => onUserClick(user)}
+                    onDelete={onUserDelete ? () => onUserDelete(user) : undefined}
                 />
             ))}
         </div>

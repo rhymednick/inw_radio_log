@@ -7,6 +7,7 @@ import { UserProfileEditor } from '@/components/user-profile-editor';
 import { Button } from '@/components/ui/button';
 import { User } from '@/types/types'; // Import User type
 import UsersGrid from '@/components/users-grid'; // Import the UsersGrid component
+import { deleteUser } from '@/lib/api'; // Import deleteUser function
 
 const UsersPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -44,6 +45,24 @@ const UsersPage: React.FC = () => {
             });
     };
 
+    const handleUserDelete = async (user: User) => {
+        try {
+            const result = await deleteUser(user.id);
+            if (result) {
+                // Remove the deleted user from the state
+                setUsers((prevUsers) => prevUsers.filter((u) => u.id !== user.id));
+                console.log('User deleted successfully');
+            } else {
+                throw new Error('Deletion failed');
+            }
+        } catch (error: any) {
+            console.error(
+                'Failed to delete user:',
+                error instanceof Error ? error.message : 'An unknown error occurred.'
+            );
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto p-4">
             <h1 className="text-3xl font-bold mb-6">User Management</h1>
@@ -59,6 +78,7 @@ const UsersPage: React.FC = () => {
             <UsersGrid
                 users={users}
                 onUserClick={handleUserClick}
+                onUserDelete={handleUserDelete}
             />
 
             {isEditorOpen && (
