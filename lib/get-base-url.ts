@@ -1,12 +1,14 @@
-export function getBaseUrl() {
-    // Check if running on the server or client
+export function getBaseUrl(req?: { headers: { host: string } }) {
     if (typeof window === 'undefined') {
-        // On the server
-        return process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}` // Vercel environment
-            : 'http://localhost:3000'; // Local development environment
+        // Server-side: Use the request object if provided
+        if (req) {
+            const protocol = req.headers.host.includes('localhost') ? 'http' : 'https';
+            return `${protocol}://${req.headers.host}`;
+        }
+        // Fallback for when req is not provided
+        return 'http://localhost:3000';
     } else {
-        // On the client
-        return '';
+        // Client-side: use the browser's location
+        return `${window.location.protocol}//${window.location.host}`;
     }
 }
