@@ -5,6 +5,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button'; // Assuming you're using shadcn for buttons
+import CheckedOutRadios from '@/components/checked-out-radios';
+import UsersWithRadios from '@/components/users-with-radios';
+import CheckedOutRadiosTabs from '@/components/checked-out-radios-tabs';
 
 export default function AdminPage() {
     // Function to handle backup
@@ -57,6 +60,11 @@ export default function AdminPage() {
                 </Button>
             </div>
 
+            <h2 className="text-lg font-bold mb-4">Current Hardware Utilization</h2>
+            <div className="mb-6">
+                <CheckedOutRadiosTabs />
+            </div>
+
             <h2 className="text-lg font-bold mb-4">Database Operations Scripts</h2>
             <ul className="list-disc space-y-4 ml-8">
                 <li>
@@ -68,20 +76,12 @@ export default function AdminPage() {
                         Backup User Database (Nondestructive)
                     </Link>
                 </li>
-                <li>
-                    <Link
-                        href="#"
-                        onClick={handleInitializeDatabase}
-                        className="text-green-500 hover:underline"
-                    >
-                        Backup and Initialize User Database from Critical 2024 Leads (Destructive)
-                    </Link>
-                </li>
+
                 <li>
                     <Link
                         href="#"
                         onClick={handleArchiveLog}
-                        className="text-yellow-500 hover:underline"
+                        className="text-orange-500 hover:underline"
                     >
                         Archive and Empty Checkout Log (Destructive)
                     </Link>
